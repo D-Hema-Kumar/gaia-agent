@@ -25,7 +25,7 @@ class BasicAgent:
         message = [HumanMessage(content=question)]
         response = self.graph.invoke({"messages": message})
         answer = response["messages"][-1].content
-        return answer[14:]
+        return answer
 
 
 def run_and_submit_all(profile: gr.OAuthProfile | None):
