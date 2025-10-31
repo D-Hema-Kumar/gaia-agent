@@ -6,6 +6,7 @@ import requests
 from langchain_core.messages import HumanMessage
 
 from main import graph_builder
+from tools import format_response
 
 # (Keep Constants as is)
 # --- Constants ---
@@ -25,7 +26,8 @@ class BasicAgent:
         message = [HumanMessage(content=question)]
         response = self.graph.invoke({"messages": message})
         answer = response["messages"][-1].content
-        return answer
+        formatted_answer = format_response(answer)
+        return formatted_answer
 
 
 def run_and_submit_all(profile: gr.OAuthProfile | None):

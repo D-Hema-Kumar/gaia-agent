@@ -6,3 +6,5 @@ langchain-core
 langgraph
 langchain-openai
 ddgs
+langchain-tavily
+wikipedia
