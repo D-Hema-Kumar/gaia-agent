@@ -7,6 +7,7 @@ from langchain_core.messages import HumanMessage
 
 from main import graph_builder
 from tools import format_response
+from utils import preprocess_file_for_agent
 
 # (Keep Constants as is)
 # --- Constants ---
@@ -87,9 +88,15 @@ def run_and_submit_all(profile: gr.OAuthProfile | None):
     for item in questions_data:
         task_id = item.get("task_id")
         question_text = item.get("question")
+        task_file_name = item.get("file_name")
+
         if not task_id or question_text is None:
             print(f"Skipping item with missing task_id or question: {item}")
             continue
+        if task_file_name != "":
+            question_text = preprocess_file_for_agent(
+                task_text=question_text, task_file_name=task_file_name
+            )
         try:
             submitted_answer = agent(question_text)
             answers_payload.append(
