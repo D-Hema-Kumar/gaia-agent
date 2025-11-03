@@ -8,3 +8,10 @@ langchain-openai
 ddgs
 langchain-tavily
 wikipedia
+transformers
+torch
+openai-whisper
+pandas
+openpyxl
+python-dotenv
+pydub
