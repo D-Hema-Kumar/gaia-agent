@@ -8,6 +8,7 @@ langchain-openai
 ddgs
 langchain-tavily
 wikipedia
+arxiv
 transformers
 torch
 openai-whisper
@@ -15,3 +16,5 @@ pandas
 openpyxl
 python-dotenv
 pydub
+torchaudio
+google-genai

@@ -11,3 +11,7 @@ wheels/
 
 # env
 .env
+
+# Ignore all mp3 files in task_data
+task_data/*.mp3
+

@@ -8,7 +8,8 @@ from langgraph.graph import START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from tools import arXiv_search, format_response, wiki_search
+from tools import arXiv_search, format_response, python_repl_tool, wiki_search
+from utils import preprocess_file_for_agent
 
 load_dotenv()
 
@@ -30,7 +31,7 @@ def graph_builder():
         model="gpt-4o-mini",  # "gpt-3.5-turbo",
         temperature=0,
     )
-    tools = [web_search_tool, wiki_search, arXiv_search]
+    tools = [web_search_tool, wiki_search, arXiv_search, python_repl_tool]
     chat_with_tools = chat.bind_tools(tools=tools)
 
     with open("prompt.txt", "r", encoding="utf-8") as f:
@@ -63,9 +64,36 @@ if __name__ == "__main__":
     # Test the agent with a sample question
     # test_question = "When was a picture of St. Thomas Aquinas first added to the Wikipedia page on the Principle of double effect?"
     test_question = ".rewsna eht sa 'tfel' drow eht fo etisoppo eht etirw ,ecnetnes siht dnatsrednu uoy fI"
+    test_question = {
+        "task_id": "1f975693-876d-457b-a649-393859e79bf3",
+        "question": "Hi, I was out sick from my classes on Friday, so I'm trying to figure out what I need to study for my Calculus mid-term next week. My friend from class sent me an audio recording of Professor Willowbrook giving out the recommended reading for the test, but my headphones are broken :(\n\nCould you please listen to the recording for me and tell me the page numbers I'm supposed to go over? I've attached a file called Homework.mp3 that has the recording. Please provide just the page numbers as a comma-delimited list. And please provide the list in ascending order.",
+        "Level": "1",
+        "file_name": "1f975693-876d-457b-a649-393859e79bf3.mp3",
+    }
+    test_question = {
+        "task_id": "cca530fc-4052-43b2-b130-b30968d8aa44",
+        "question": "Review the chess position provided in the image. It is black's turn. Provide the correct next move for black which guarantees a win. Please provide your response in algebraic notation.",
+        "Level": "1",
+        "file_name": "cca530fc-4052-43b2-b130-b30968d8aa44.png",
+    }
+    test_question = {
+        "task_id": "f918266a-b3e0-4914-865d-4faa564f1aef",
+        "question": "What is the final numeric output from the attached Python code?",
+        "Level": "1",
+        "file_name": "f918266a-b3e0-4914-865d-4faa564f1aef.py",
+    }
+    print(f"Task:{test_question['question']}\n\n")
+    print("--Processing task and task files (if any) for the agent--")
+    task_description = preprocess_file_for_agent(
+        task_text=test_question["question"], task_file_name=test_question["file_name"]
+    )
+    print(f"--Task Description--\n\n{task_description}")
+    print("--Building Graph--\n\n")
     graph = graph_builder()
-    messages = [HumanMessage(content=test_question)]
-    response = graph.invoke({"messages": messages})
+    messages = [HumanMessage(content=task_description)]
+    print("--Invoking Graph--\n\n")
+    response = graph.invoke({"messages": messages}, config={"recursion_limit": 5})
     answer = response["messages"][-1].content
+    print("--Formatting the response--\n\n")
     formatted_answer = format_response(answer)
     print(f"Agent response: {formatted_answer}")

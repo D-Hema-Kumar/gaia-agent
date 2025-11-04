@@ -25,7 +25,9 @@ class BasicAgent:
         print(f"Agent received question (first 50 chars): {question[:50]}...")
         # fixed_answer = "This is a default answer."
         message = [HumanMessage(content=question)]
-        response = self.graph.invoke({"messages": message})
+        response = self.graph.invoke(
+            {"messages": message}, config={"recursion_limit": 5}
+        )
         answer = response["messages"][-1].content
         formatted_answer = format_response(answer)
         return formatted_answer

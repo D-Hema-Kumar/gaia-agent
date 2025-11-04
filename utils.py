@@ -2,10 +2,14 @@ import os
 import re
 
 import pandas as pd
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
 from transformers import pipeline
 
 # constants
 TASK_DATA_PATH = "./task_data/"
+load_dotenv()
 
 
 def format_response(response: str) -> str:
@@ -25,6 +29,33 @@ def transcribe_audio_file(file_path: str) -> str:
     )
     result = asr_pipeline(file_path, return_timestamps=True)
     return result["text"]
+
+
+def analyze_image(image_path: str, question_text: str) -> str:
+    """
+    Answers quetions about a given image.
+    Use when an image is given to you in the question.
+    Args:
+        image_path (str): path to where the image is stored.
+        question (str): The question you are asking about the image.
+    """
+    print(f"Analyzing image at:{image_path}")
+    try:
+        with open(image_path, "rb") as f:
+            file_content = f.read()
+        client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[
+                types.Part.from_bytes(data=file_content, mime_type="image/png"),
+                question_text,
+            ],
+        )
+
+        return response.text
+    except Exception as e:
+        return f"Error {str(e)}"
 
 
 def preprocess_file_for_agent(task_text: str, task_file_name: str) -> str:
@@ -72,9 +103,8 @@ def preprocess_file_for_agent(task_text: str, task_file_name: str) -> str:
             return task_description
 
         elif extension in [".jpeg", ".jpg", ".png"]:
-            with open(file_path, "rb") as f:
-                file_content = f.read()
-            task_description = f"{task_text}\n\nAttached file content:"  # TODO: implement vision capanbilities
+            answer = analyze_image(image_path=file_path, question_text=task_text)
+            task_description = f"{task_text}\n\nanalyzed file content:{answer}"  # TODO: implement vision capanbilities
             return task_description
 
     except Exception as e:
@@ -89,7 +119,16 @@ if __name__ == "__main__":
         "Level": "1",
         "file_name": "1f975693-876d-457b-a649-393859e79bf3.mp3",
     }
+    test_question = {
+        "task_id": "cca530fc-4052-43b2-b130-b30968d8aa44",
+        "question": "Review the chess position provided in the image. It is black's turn. Provide the correct next move for black which guarantees a win. Please provide your response in algebraic notation.",
+        "Level": "1",
+        "file_name": "cca530fc-4052-43b2-b130-b30968d8aa44.png",
+    }
     task_description = preprocess_file_for_agent(
         task_text=test_question["question"], task_file_name=test_question["file_name"]
     )
     print(f"The task description for the given quesntion\n\n{task_description}")
+    # client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    # for model in client.models.list():
+    #    print(model.name)

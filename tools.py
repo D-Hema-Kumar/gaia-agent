@@ -1,3 +1,5 @@
+import contextlib
+import io
 import re
 
 from langchain.tools import tool
@@ -25,6 +27,21 @@ def arXiv_search(query: str) -> str:
         return "No results found"
 
     return docs_loaded
+
+
+@tool
+def python_repl_tool(code: str) -> str:
+    """
+    Executes Python code safely and returns the stdout or errors.
+    Use this tool for calculations, data analysis, or tabular computations.
+    """
+    f = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(f):
+            exec(code, {})
+        return f.getvalue().strip() or "Code executed successfully, no output."
+    except Exception as e:
+        return f"Error executing Python code: {e}"
 
 
 def format_response(response: str) -> str:
