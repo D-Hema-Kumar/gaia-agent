@@ -26,7 +26,7 @@ class BasicAgent:
         # fixed_answer = "This is a default answer."
         message = [HumanMessage(content=question)]
         response = self.graph.invoke(
-            {"messages": message}, config={"recursion_limit": 5}
+            {"messages": message}, config={"recursion_limit": 15}
         )
         answer = response["messages"][-1].content
         formatted_answer = format_response(answer)
